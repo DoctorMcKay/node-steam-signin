@@ -16,6 +16,7 @@ let server = HTTP.createServer(async (req, res) => {
 		try {
 			let steamId = await signIn.verifyLogin(req.url);
 			res.end(`Your SteamID is: ${steamId.getBigIntID()} / ${steamId.steam3()}`);
+			console.log(`User signed in: ${steamId.getBigIntID()} / ${steamId.steam3()}`);
 		} catch (ex) {
 			res.end(`Failed to validate your login: ${ex.message}`);
 		}
