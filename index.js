@@ -46,23 +46,59 @@ class SteamSignIn {
 			}
 
 			let parsedUrl = new URL(url);
+			let query = {};
+			let passThroughParams = [
+				'openid.assoc_handle',
+				'openid.signed',
+				'openid.sig'
+			];
 
-			let query = {
-				'openid.assoc_handle': parsedUrl.searchParams.get('openid.assoc_handle'),
-				'openid.signed': parsedUrl.searchParams.get('openid.signed'),
-				'openid.sig': parsedUrl.searchParams.get('openid.sig'),
-				'openid.ns': 'http://specs.openid.net/auth/2.0'
+			// Check the response mode
+			let openidMode = parsedUrl.searchParams.get('openid.mode') || '';
+			if (openidMode != 'id_res') {
+				return reject(new Error(`Response parameter openid.mode value "${openidMode}" does not match expected value "id_res"`));
+			}
+
+			for (let i = 0; i < passThroughParams.length; i++) {
+				let param = passThroughParams[i];
+				if (!parsedUrl.searchParams.has(param)) {
+					return reject(new Error(`No "${param}" parameter is present in the URL`));
+				}
+
+				query[param] = parsedUrl.searchParams.get(param);
+			}
+
+			let signedParams = query['openid.signed'].split(',');
+			for (let i = 0; i < signedParams.length; i++) {
+				let param = `openid.${signedParams[i]}`;
+				if (!parsedUrl.searchParams.has(param)) {
+					return reject(new Error(`No "${param}" parameter is present in the URL`));
+				}
+
+				query[param] = parsedUrl.searchParams.get(param);
+			}
+
+			// Verify that some important parameters are signed. Steam *should* check this, but let's be doubly sure.
+			let requireSigned = [
+				'claimed_id',       // The user's SteamID. If not signed, the SteamID could be spoofed.
+				'return_to',        // The return URL. If not signed, a login from another (malicious) site could be used.
+				'response_nonce'    // The response nonce. If not signed, a successful login could be reused.
+			];
+			if (requireSigned.some(param => !signedParams.includes(param))) {
+				return reject(new Error('A vital parameter was not signed'));
+			}
+
+			// Set these params here to avoid any potential for malicious user input overwriting them
+			query = {
+				...query,
+				'openid.ns': 'http://specs.openid.net/auth/2.0',
+				'openid.mode': 'check_authentication'
 			};
 
-			query['openid.signed'].split(',').forEach((prop) => {
-				query[`openid.${prop}`] = parsedUrl.searchParams.get(`openid.${prop}`);
-			});
-
-			query['openid.mode'] = 'check_authentication';
-
+			// Check openid.return_to from our query object, because it's very important that it be a signed parameter.
 			let returnTo = query['openid.return_to'];
 			if (!returnTo) {
-				return reject(new Error('No openid.return_to item is present in the URL'));
+				return reject(new Error('No "openid.return_to" parameter is present in the URL'));
 			}
 
 			let realm = canonicalizeRealm(returnTo);
@@ -72,7 +108,7 @@ class SteamSignIn {
 
 			let claimedIdMatch = (query['openid.claimed_id'] || '').match(/^https?:\/\/steamcommunity\.com\/openid\/id\/(\d+)\/?$/);
 			if (!claimedIdMatch) {
-				return reject(new Error('No openid.claimed_id is present in the URL, or it doesn\'t have the correct format'));
+				return reject(new Error('No "openid.claimed_id" parameter is present in the URL, or it doesn\'t have the correct format'));
 			}
 
 			let encodedBody = QueryString.stringify(query);
