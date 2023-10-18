@@ -1,3 +1,4 @@
+// @ts-ignore
 import SteamID from 'steamid';
 
 declare class SteamSignIn {
