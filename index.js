@@ -75,7 +75,8 @@ class SteamSignIn {
 					return reject(new Error(`No "${param}" parameter is present in the URL`));
 				}
 
-				query[param] = parsedUrl.searchParams.get(param);
+				let sanitizedParamName = param.replace(/[^a-zA-Z0-9_.]/g, '');
+				query[sanitizedParamName] = parsedUrl.searchParams.get(param);
 			}
 
 			// Verify that some important parameters are signed. Steam *should* check this, but let's be doubly sure.
