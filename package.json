@@ -1,6 +1,6 @@
 {
 	"name": "steam-signin",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"description": "A simple interface for authenticating users using Steam's OpenID provider",
 	"keywords": [
 		"steam",
