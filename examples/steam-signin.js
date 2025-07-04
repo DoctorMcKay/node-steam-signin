@@ -4,10 +4,10 @@ const HTTP = require('http');
 const SteamSignIn = require('../index.js');
 //const SteamSignIn = require('steam-signin');
 
-let g_ServerListenPort = null;
+const g_ServerListenPort = 3001;
 
 let server = HTTP.createServer(async (req, res) => {
-	let signIn = new SteamSignIn('http://localhost');
+	let signIn = new SteamSignIn('http://localhost:' + g_ServerListenPort);
 
 	if (req.url.startsWith('/return')) {
 		// Always return a plaintext response to this route
@@ -31,7 +31,6 @@ let server = HTTP.createServer(async (req, res) => {
 	res.end();
 });
 
-server.listen(() => {
-	g_ServerListenPort = server.address().port;
+server.listen(g_ServerListenPort, () => {
 	console.log(`HTTP server started. Open http://localhost:${g_ServerListenPort} in your browser to demo Steam sign-in.`);
 });

@@ -12,8 +12,8 @@ const SteamSignIn = require("../index.js");
 
 const app = express();
 const server = http.createServer(app);
-let g_ServerListenPort;
-const signIn = new SteamSignIn(baseUrl);
+const g_ServerListenPort = 3001;
+const signIn = new SteamSignIn(`${baseUrl}:${g_ServerListenPort}`);
 
 const personaStateMap = {
   0: "Offline",
@@ -143,8 +143,7 @@ app.get("/profile", async (req, res) => {
   }
 });
 
-server.listen(() => {
-  g_ServerListenPort = server.address().port;
+server.listen(g_ServerListenPort, () => {
   console.log(
     `HTTP server started. Open ${baseUrl}:${g_ServerListenPort} in your browser to demo Steam sign-in.`
   );
