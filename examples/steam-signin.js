@@ -7,7 +7,7 @@ const SteamSignIn = require('../index.js');
 const g_ServerListenPort = 3001;
 
 let server = HTTP.createServer(async (req, res) => {
-	let signIn = new SteamSignIn('http://localhost:' + g_ServerListenPort);
+	let signIn = new SteamSignIn(`http://localhost:${g_ServerListenPort}`);
 
 	if (req.url.startsWith('/return')) {
 		// Always return a plaintext response to this route
