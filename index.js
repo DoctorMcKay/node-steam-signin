@@ -151,7 +151,8 @@ class SteamSignIn {
 }
 
 function canonicalizeRealm(realm) {
-	let match = realm.match(/^(https?:\/\/[^:/]+)/);
+	// Fix for the latest steam update, they require port now
+	let match = realm.match(/^(https?:\/\/[^/]+)/);
 	if (!match) {
 		throw new Error(`"${realm}" does not appear to be a valid realm`);
 	}
